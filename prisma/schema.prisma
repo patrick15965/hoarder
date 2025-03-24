@@ -14,9 +14,11 @@ datasource db {
 }
 
 model User {
-  id       Int       @id @default(autoincrement())
-  googleId String?   @unique
+  id       Int        @id @default(autoincrement())
+  googleId String?    @unique
   sessions Session[]
+  Category Category[]
+  Item     Item[]
 }
 
 model Session {
@@ -25,4 +27,61 @@ model Session {
   expiresAt DateTime
 
   user User @relation(references: [id], fields: [userId], onDelete: Cascade)
+}
+
+model Category {
+  id         Int     @id @default(autoincrement())
+  userId     Int
+  image_path String?
+  name       String
+  isRoot     Boolean @default(false)
+
+  User              User             @relation(fields: [userId], references: [id])
+  ParentSubCategory SubCategory[]    @relation("Parent")
+  ChildSubCategory  SubCategory[]    @relation("Child")
+  ItemInCategory    ItemInCategory[]
+}
+
+model SubCategory {
+  id       Int @id @default(autoincrement())
+  parentId Int
+  childId  Int
+
+  Parent Category @relation(name: "Parent", fields: [parentId], references: [id])
+  Child  Category @relation(name: "Child", fields: [childId], references: [id])
+}
+
+model Item {
+  id         Int     @id @default(autoincrement())
+  userId     Int
+  name       String
+  image_path String?
+
+  User            User              @relation(fields: [userId], references: [id])
+  ItemInCategory  ItemInCategory[]
+  ItemActionEvent ItemActionEvent[]
+}
+
+model ItemInCategory {
+  id         Int @id @default(autoincrement())
+  categoryId Int
+  itemId     Int
+
+  Category Category @relation(fields: [categoryId], references: [id])
+  Item     Item     @relation(fields: [itemId], references: [id])
+}
+
+model ItemAction {
+  id              Int               @id @default(autoincrement())
+  name            String
+  ItemActionEvent ItemActionEvent[]
+}
+
+model ItemActionEvent {
+  id           Int @id @default(autoincrement())
+  itemActionId Int
+  itemId       Int
+
+  ItemAction ItemAction @relation(fields: [itemActionId], references: [id])
+  Item       Item       @relation(fields: [itemId], references: [id])
 }
